@@ -15,7 +15,7 @@ buildscript {
     }
 
     dependencies {
-        classpath "com.android.tools.build:gradle:7.4.1"
+        classpath "com.android.tools.build:gradle:7.4.2"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.22"
 
     }
@@ -60,12 +60,12 @@ android {
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation "com.pspdfkit:$pspdfkitMavenModuleName:$pspdfkitVersion"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.9.20"
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation "androidx.compose.material:material:1.6.5"
-    implementation "androidx.compose.material:material:1.6.3"
+    implementation "androidx.compose.material:material:1.6.7"
+    implementation "androidx.compose.material:material:1.6.7"
     implementation "androidx.constraintlayout:constraintlayout:2.1.4"
     implementation "androidx.constraintlayout:constraintlayout-compose:1.0.1"
-    implementation "androidx.compose.foundation:foundation:1.6.3"
-    implementation "androidx.compose.ui:ui:1.6.3"
+    implementation "androidx.compose.foundation:foundation:1.6.7"
+    implementation "androidx.compose.ui:ui:1.6.7"
 }
