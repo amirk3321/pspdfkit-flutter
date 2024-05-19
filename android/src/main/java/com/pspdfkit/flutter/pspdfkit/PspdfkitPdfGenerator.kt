@@ -18,9 +18,9 @@ class PspdfkitPdfGenerator(private val pageAdaptor: PdfPageAdaptor) {
      * Creates a new [PdfProcessorTask] that can be used to process a PDF document.
      */
     fun generatePdf(
-        pages: List<HashMap<String, Any>>,
-        outputFilePath: String,
-        result: MethodChannel.Result
+            pages: List<HashMap<String, Any>>,
+            outputFilePath: String,
+            result: MethodChannel.Result
     ) {
 
         val documentPages = pageAdaptor.parsePages(pages)
@@ -32,22 +32,22 @@ class PspdfkitPdfGenerator(private val pageAdaptor: PdfPageAdaptor) {
 
         val outputFile = File(outputFilePath);
         disposable = PdfProcessor
-            .processDocumentAsync(task, outputFile)
-            .subscribeOn(Schedulers.io())
-            // Publish results on the main thread so we can update the UI.
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe({
-                //Log progress
-                Log.d(
-                    "PDF Generation",
-                    "generatePdf: Processing page ${it.pagesProcessed + 1} of ${it.totalPages}"
-                )
-            }, {
-                // Handle the error.
-                result.error("Error generating PDF", it.message, null)
-            }, {
-                result.success(outputFilePath)
-            })
+                .processDocumentAsync(task, outputFile)
+                .subscribeOn(Schedulers.io())
+                // Publish results on the main thread so we can update the UI.
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    //Log progress
+                    Log.d(
+                            "PDF Generation",
+                            "generatePdf: Processing page ${it.pagesProcessed + 1} of ${it.totalPages}"
+                    )
+                }, {
+                    // Handle the error.
+                    result.error("Error generating PDF", it.message, null)
+                }, {
+                    result.success(outputFilePath)
+                })
     }
 
     fun dispose() {

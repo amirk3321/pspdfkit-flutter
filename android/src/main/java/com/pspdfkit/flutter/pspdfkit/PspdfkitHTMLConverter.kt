@@ -23,18 +23,18 @@ object PspdfkitHTMLConverter {
     @JvmStatic
     @SuppressLint("CheckResult")
     fun generateFromHtmlString(
-        context: Context,
-        html: String,
-        outputFilePath: String,
-        options: Map<String, Any>?,
-        results: MethodChannel.Result
+            context: Context,
+            html: String,
+            outputFilePath: String,
+            options: Map<String, Any>?,
+            results: MethodChannel.Result
     ) {
         val outputFile = File(outputFilePath)// Output file for the converted PDF.
 
         val converter = if (options?.contains("baseUrl") == true) HtmlToPdfConverter.fromHTMLString(
-            context,
-            html,
-            options["baseUrl"] as String
+                context,
+                html,
+                options["baseUrl"] as String
         ) else HtmlToPdfConverter.fromHTMLString(context, html)
 
         if (options?.contains("enableJavaScript") == true)
@@ -44,24 +44,24 @@ object PspdfkitHTMLConverter {
             converter.title(options["documentTitle"] as String)
 
         converter
-            // Perform the conversion.
-            .convertToPdfAsync(outputFile)
-            .subscribeOn(Schedulers.io())
-            // Publish results on the main thread so we can update the UI.
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(
-                { results.success(outputFile.absolutePath) },
-                { results.error("HTML_TO_PDF_ERROR", it.message, null) })
+                // Perform the conversion.
+                .convertToPdfAsync(outputFile)
+                .subscribeOn(Schedulers.io())
+                // Publish results on the main thread so we can update the UI.
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                        { results.success(outputFile.absolutePath) },
+                        { results.error("HTML_TO_PDF_ERROR", it.message, null) })
     }
 
     @JvmStatic
     @SuppressLint("CheckResult")
     fun generateFromHtmlUri(
-        context: Context,
-        htmlUriString: String,
-        outputFilePath: String,
-        options: Map<String, Any>?,
-        results: MethodChannel.Result
+            context: Context,
+            htmlUriString: String,
+            outputFilePath: String,
+            options: Map<String, Any>?,
+            results: MethodChannel.Result
     ) {
         val outputFile = File(outputFilePath)// Output file for the converted PDF.
         val convertor = HtmlToPdfConverter.fromUri(context, Uri.parse(htmlUriString))
@@ -74,15 +74,15 @@ object PspdfkitHTMLConverter {
         if (options?.contains("documentTitle") == true) convertor.title(options["documentTitle"] as String)
 
         convertor
-            // Perform the conversion.
-            .convertToPdfAsync(outputFile)
-            // Subscribe to the conversion result.
-            .subscribe({
-                // Return the converted document.
-                results.success(outputFilePath)
-            }, {
-                // Handle the error.
-                results.error("Error converting HTML to PDF", it.message, null)
-            })
+                // Perform the conversion.
+                .convertToPdfAsync(outputFile)
+                // Subscribe to the conversion result.
+                .subscribe({
+                    // Return the converted document.
+                    results.success(outputFilePath)
+                }, {
+                    // Handle the error.
+                    results.error("Error converting HTML to PDF", it.message, null)
+                })
     }
 }

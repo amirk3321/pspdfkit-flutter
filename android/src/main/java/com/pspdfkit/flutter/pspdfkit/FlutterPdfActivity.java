@@ -12,6 +12,7 @@ import com.pspdfkit.ui.PdfActivity;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+
 import io.flutter.plugin.common.MethodChannel.Result;
 
 /**
@@ -20,17 +21,24 @@ import io.flutter.plugin.common.MethodChannel.Result;
  */
 public class FlutterPdfActivity extends PdfActivity {
 
-    @Nullable private static FlutterPdfActivity currentActivity;
-    @NonNull private static final AtomicReference<Result> loadedDocumentResult = new AtomicReference<>();
-
-    @Nullable private  static List<Map<String,Object>> measurementValueConfigurations;
+    @NonNull
+    private static final AtomicReference<Result> loadedDocumentResult = new AtomicReference<>();
+    @Nullable
+    private static FlutterPdfActivity currentActivity;
+    @Nullable
+    private static List<Map<String, Object>> measurementValueConfigurations;
 
     public static void setLoadedDocumentResult(Result result) {
         loadedDocumentResult.set(result);
     }
 
-    public static void setMeasurementValueConfigurations(@Nullable final List<Map<String,Object>> configurations) {
+    public static void setMeasurementValueConfigurations(@Nullable final List<Map<String, Object>> configurations) {
         measurementValueConfigurations = configurations;
+    }
+
+    @Nullable
+    public static FlutterPdfActivity getCurrentActivity() {
+        return currentActivity;
     }
 
     @Override
@@ -59,7 +67,7 @@ public class FlutterPdfActivity extends PdfActivity {
         if (result != null) {
             result.success(true);
         }
-        if (measurementValueConfigurations != null && getPdfFragment() !=null) {
+        if (measurementValueConfigurations != null && getPdfFragment() != null) {
             for (Map<String, Object> configuration : measurementValueConfigurations) {
                 MeasurementHelper.addMeasurementConfiguration(getPdfFragment(), configuration);
             }
@@ -85,10 +93,5 @@ public class FlutterPdfActivity extends PdfActivity {
             result.success(false);
         }
         currentActivity = null;
-    }
-
-    @Nullable
-    public static FlutterPdfActivity getCurrentActivity() {
-        return currentActivity;
     }
 }

@@ -8,7 +8,7 @@ import java.util.UUID
 
 /** A small in-memory data provider for loading the Document instant JSON from a string.  */
 class DocumentJsonDataProvider(annotationsJson: String) :
-    InputStreamDataProvider() {
+        InputStreamDataProvider() {
     private val annotationsJsonBytes: ByteArray = annotationsJson.toByteArray(StandardCharsets.UTF_8)
     private val uuid: UUID = UUID.nameUUIDFromBytes(annotationsJsonBytes)
     override fun openInputStream(): InputStream {

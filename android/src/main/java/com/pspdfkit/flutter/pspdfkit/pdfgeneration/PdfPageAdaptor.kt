@@ -24,28 +24,31 @@ class PdfPageAdaptor(private val context: Context) {
         val page: NewPage.Builder = when (pageConfigurations["type"]) {
             "pattern" -> {
                 val pattern =
-                    resolvePagePattern(pageConfigurations["pattern"] as HashMap<String, Any>)
+                        resolvePagePattern(pageConfigurations["pattern"] as HashMap<String, Any>)
                 NewPage.patternPage(
-                    pageSize,
-                    pattern
+                        pageSize,
+                        pattern
                 )
             }
+
             "imagePage" -> {
                 val pageImage = parseImage(pageConfigurations["imagePage"] as HashMap<String, Any>)
                 NewPage.emptyPage(
-                    pageSize,
+                        pageSize,
                 ).withPageItem(
-                    pageImage
+                        pageImage
                 )
             }
+
             "pdfPage" -> {
                 val pdfPage = parsePdf(pageConfigurations["pdfPage"] as HashMap<String, Any>)
                 NewPage.emptyPage(
-                    pageSize,
+                        pageSize,
                 ).withPageItem(
-                    pdfPage
+                        pdfPage
                 )
             }
+
             else -> {
                 throw IllegalArgumentException("Invalid page type")
             }
@@ -73,14 +76,14 @@ class PdfPageAdaptor(private val context: Context) {
 
     private fun parsePdf(pageConfig: HashMap<String, Any>): PagePdf {
         val pdfPage = if (pageConfig.containsKey("position")) PagePdf(
-            context,
-            Uri.parse(pageConfig["documentUri"] as String),
-            pageConfig["pageIndex"] as Int,
-            resolvePagePosition(pageConfig["position"] as String)
+                context,
+                Uri.parse(pageConfig["documentUri"] as String),
+                pageConfig["pageIndex"] as Int,
+                resolvePagePosition(pageConfig["position"] as String)
         ) else PagePdf(
-            context,
-            Uri.parse(pageConfig["documentUri"] as String),
-            pageConfig["pageIndex"] as Int,
+                context,
+                Uri.parse(pageConfig["documentUri"] as String),
+                pageConfig["pageIndex"] as Int,
         )
         return pdfPage.apply {
             if (pageConfig.containsKey("zOrder")) {
@@ -91,8 +94,8 @@ class PdfPageAdaptor(private val context: Context) {
 
     private fun parseImage(imageConfig: Map<String, Any>): PageImage {
         return PageImage(
-            context, Uri.parse(imageConfig["imageUri"] as String),
-            resolvePagePosition(imageConfig["position"] as String),
+                context, Uri.parse(imageConfig["imageUri"] as String),
+                resolvePagePosition(imageConfig["position"] as String),
         ).apply {
             if (imageConfig.containsKey("quality")) {
                 setJpegQuality(imageConfig["quality"] as Int)

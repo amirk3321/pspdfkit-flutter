@@ -22,7 +22,7 @@ import com.pspdfkit.ui.toolbar.grouping.presets.PresetMenuItemGroupingRule
  * A menu item grouping rule that displays only the menu items configured via the menuItemGrouping prop.
  */
 class FlutterMenuGroupingRule(context: Context, menuItems: List<Any>) :
-    PresetMenuItemGroupingRule(context) {
+        PresetMenuItemGroupingRule(context) {
     private val items: MutableList<MenuItem> = ArrayList()
 
     init {
@@ -34,7 +34,7 @@ class FlutterMenuGroupingRule(context: Context, menuItems: List<Any>) :
                 if (group == INVALID_ID) {
                     continue
                 }
-                val subItems: List<Map<String,Any>> = menuItem["items"] as List<Map<String,Any>>
+                val subItems: List<Map<String, Any>> = menuItem["items"] as List<Map<String, Any>>
                 val ids = collectItemIds(subItems)
                 // Remove the first item from the list of items, as it will be displayed as a single item.
                 items.add(MenuItem(group, ids))
@@ -130,8 +130,8 @@ class FlutterMenuGroupingRule(context: Context, menuItems: List<Any>) :
     }
 
     override fun getGroupPreset(
-        @IntRange(from = ContextualToolbar.MIN_TOOLBAR_CAPACITY.toLong()) capacity: Int,
-        itemsCount: Int
+            @IntRange(from = ContextualToolbar.MIN_TOOLBAR_CAPACITY.toLong()) capacity: Int,
+            itemsCount: Int
     ): List<MenuItem> {
         return items
     }

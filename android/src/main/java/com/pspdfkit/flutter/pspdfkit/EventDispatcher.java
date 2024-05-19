@@ -65,13 +65,13 @@ public class EventDispatcher {
     }
 
     public void notifyInstantSyncFailed(String documentId, String error) {
-        sendEvent("pspdfkitInstantSyncFailed",new HashMap<String, String>() {{
+        sendEvent("pspdfkitInstantSyncFailed", new HashMap<String, String>() {{
             put("documentId", documentId);
             put("error", error);
         }});
     }
 
-    public void notifyInstantAuthenticationFinished(String documentId,String validJWT) {
+    public void notifyInstantAuthenticationFinished(String documentId, String validJWT) {
         sendEvent("pspdfkitInstantAuthenticationFinished", new HashMap<String, String>() {{
             put("documentId", documentId);
             put("jwt", validJWT);

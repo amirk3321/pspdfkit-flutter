@@ -39,7 +39,7 @@ class FlutterInstantPdfActivity : InstantPdfActivity() {
         super.onDestroy()
         releaseActivity()
     }
-    
+
     override fun onDocumentLoaded(pdfDocument: PdfDocument) {
         super.onDocumentLoaded(pdfDocument)
         val result = loadedDocumentResult.getAndSet(null)
@@ -56,43 +56,43 @@ class FlutterInstantPdfActivity : InstantPdfActivity() {
         val result = loadedDocumentResult.getAndSet(null)
         result?.success(false)
     }
-    
+
     override fun onSyncStarted(instantDocument: InstantPdfDocument) {
         super.onSyncStarted(instantDocument)
         EventDispatcher.getInstance()
-            .notifyInstantSyncStarted(instantDocument.instantDocumentDescriptor.documentId)
+                .notifyInstantSyncStarted(instantDocument.instantDocumentDescriptor.documentId)
     }
 
     override fun onSyncFinished(instantDocument: InstantPdfDocument) {
         super.onSyncFinished(instantDocument)
         EventDispatcher.getInstance()
-            .notifyInstantSyncFinished(instantDocument.instantDocumentDescriptor.documentId)
+                .notifyInstantSyncFinished(instantDocument.instantDocumentDescriptor.documentId)
     }
 
     override fun onSyncError(instantDocument: InstantPdfDocument, error: InstantException) {
         super.onSyncError(instantDocument, error)
         EventDispatcher.getInstance().notifyInstantSyncFailed(
-            instantDocument.instantDocumentDescriptor.documentId,
-            error.message
+                instantDocument.instantDocumentDescriptor.documentId,
+                error.message
         )
     }
 
     override fun onAuthenticationFinished(instantDocument: InstantPdfDocument, validJwt: String) {
         super.onAuthenticationFinished(instantDocument, validJwt)
         EventDispatcher.getInstance().notifyInstantAuthenticationFinished(
-            instantDocument.instantDocumentDescriptor.documentId,
-            validJwt
+                instantDocument.instantDocumentDescriptor.documentId,
+                validJwt
         )
     }
 
     override fun onAuthenticationFailed(
-        instantDocument: InstantPdfDocument,
-        error: InstantException
+            instantDocument: InstantPdfDocument,
+            error: InstantException
     ) {
         super.onAuthenticationFailed(instantDocument, error)
         EventDispatcher.getInstance().notifyInstantAuthenticationFailed(
-            instantDocument.instantDocumentDescriptor.documentId,
-            error.message
+                instantDocument.instantDocumentDescriptor.documentId,
+                error.message
         )
     }
 
@@ -107,7 +107,7 @@ class FlutterInstantPdfActivity : InstantPdfActivity() {
     }
 
     companion object {
-        private  var measurementValueConfigurations:List<Map<String,Any>>? = null
+        private var measurementValueConfigurations: List<Map<String, Any>>? = null
 
         @JvmStatic
         var currentActivity: FlutterInstantPdfActivity? = null

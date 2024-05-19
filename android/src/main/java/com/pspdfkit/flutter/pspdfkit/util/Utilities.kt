@@ -1,4 +1,5 @@
 @file:JvmName("Utilities")
+
 package com.pspdfkit.flutter.pspdfkit.util
 
 import android.net.Uri
@@ -46,11 +47,11 @@ fun isImageDocument(documentPath: String): Boolean {
     if (lastDot != -1) {
         extension = documentPath.substring(lastDot + 1).lowercase(Locale.getDefault())
     }
-    return extension == "png" || 
-    extension == "jpg" || 
-    extension == "jpeg" || 
-    extension == "tiff" || 
-    extension == "tif"
+    return extension == "png" ||
+            extension == "jpg" ||
+            extension == "jpeg" ||
+            extension == "tiff" ||
+            extension == "tif"
 }
 
 

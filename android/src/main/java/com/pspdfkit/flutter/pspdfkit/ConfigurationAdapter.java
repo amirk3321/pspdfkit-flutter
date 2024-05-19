@@ -189,7 +189,7 @@ class ConfigurationAdapter {
     private static final String ENABLED_MEASUREMENT_TOOLS = "enableMeasurementTools";
     private static final String ENABLE_MAGNIFIER = "enableMagnifier";
     private static final String ENABLED_MEASUREMENT_TOOL_SNAPPING = "enableMeasurementToolSnapping";
-    
+
     @NonNull
     private final PdfActivityConfiguration.Builder configuration;
     @Nullable
@@ -385,11 +385,61 @@ class ConfigurationAdapter {
 
             key = getKeyOfType(configurationMap, ENABLED_MEASUREMENT_TOOL_SNAPPING, Boolean.class);
             if (key != null) {
-                configureMeasurementToolSnappingEnabled(context,(Boolean) configurationMap.get(key));
+                configureMeasurementToolSnappingEnabled(context, (Boolean) configurationMap.get(key));
             }
         }
     }
 
+    private static int getStyleResourceId(@NonNull String styleName, @NonNull Context context) {
+        requireNotNullNotEmpty(styleName, "styleName");
+        checkNotNull(context);
+
+        int resourceId = context.getResources().getIdentifier(styleName, "style", context.getPackageName());
+        if (resourceId == 0) {
+            Log.e(LOG_TAG, String.format("Style resource not found for %s", styleName));
+        }
+        return resourceId;
+    }
+
+    private static <T> void checkCast(Object object, Class<T> clazz, String key) {
+        if (!clazz.isInstance(object)) {
+            throw new ClassCastException(String.format("Value for the key %s must be of type %s.",
+                    key, javaToDartTypeConverted(clazz)));
+        }
+    }
+
+    /**
+     * Conversion from Java to Dart type following official specification
+     * https://flutter.dev/docs/development/platform-integration/platform-channels#platform-channel-data-types-support-and-codecs
+     */
+    private static <T> String javaToDartTypeConverted(Class<T> clazz) {
+        if (clazz == null) {
+            return "null";
+        } else if (clazz.isInstance(Boolean.class)) {
+            return "bool";
+        } else if (clazz.isInstance(Integer.class)) {
+            return "int";
+        } else if (clazz.isInstance(Long.class)) {
+            return "int";
+        } else if (clazz.isInstance(Double.class)) {
+            return "double";
+        } else if (clazz.isInstance(String.class)) {
+            return "String";
+        } else if (clazz.isInstance(byte[].class)) {
+            return "Uint8List";
+        } else if (clazz.isInstance(int[].class)) {
+            return "Int32List";
+        } else if (clazz.isInstance(long[].class)) {
+            return "Int64List";
+        } else if (clazz.isInstance(double[].class)) {
+            return "Float64List";
+        } else if (clazz.isInstance(ArrayList.class)) {
+            return "List";
+        } else if (clazz.isInstance(HashMap.class)) {
+            return "Map";
+        }
+        throw new IllegalArgumentException("Undefined dart type conversion for " + clazz.getName());
+    }
 
     private void configurePageTransition(@NonNull final String transition) {
         switch (transition) {
@@ -676,26 +726,14 @@ class ConfigurationAdapter {
         }
     }
 
-    private static int getStyleResourceId(@NonNull String styleName, @NonNull Context context) {
-        requireNotNullNotEmpty(styleName, "styleName");
-        checkNotNull(context);
-
-        int resourceId = context.getResources().getIdentifier(styleName, "style", context.getPackageName());
-        if (resourceId == 0) {
-            Log.e(LOG_TAG, String.format("Style resource not found for %s", styleName));
-        }
-        return resourceId;
-    }
-
     private <T> void configureSettingsMenuItems(@NonNull ArrayList<T> settingsMenuItems) {
         checkNotNull(settingsMenuItems);
 
         EnumSet<SettingsMenuItemType> settingsMenuItemTypes = EnumSet.noneOf(SettingsMenuItemType.class);
         for (T settingsMenuItem : settingsMenuItems) {
-            if (!(settingsMenuItem instanceof String)) {
+            if (!(settingsMenuItem instanceof String menuType)) {
                 throw new IllegalArgumentException("Provided settingMenuItem " + settingsMenuItem + " must be a String.");
             }
-            String menuType = (String) settingsMenuItem;
             switch (menuType) {
                 case SETTINGS_MENU_ITEM_THEME:
                 case SETTINGS_MENU_ITEM_ANDROID_THEME:
@@ -744,7 +782,7 @@ class ConfigurationAdapter {
         configuration.enableMagnifier(aBoolean);
     }
 
-    private void configureMeasurementToolSnappingEnabled(Context context,Boolean aBoolean) {
+    private void configureMeasurementToolSnappingEnabled(Context context, Boolean aBoolean) {
         PSPDFKitPreferences.get(context).setMeasurementSnappingEnabled(aBoolean);
     }
 
@@ -756,13 +794,6 @@ class ConfigurationAdapter {
             return true;
         }
         return false;
-    }
-
-    private static <T> void checkCast(Object object, Class<T> clazz, String key) {
-        if (!clazz.isInstance(object)) {
-            throw new ClassCastException(String.format("Value for the key %s must be of type %s.",
-                    key, javaToDartTypeConverted(clazz)));
-        }
     }
 
     /**
@@ -794,39 +825,6 @@ class ConfigurationAdapter {
             return prefixedKey;
         }
         return null;
-    }
-
-    /**
-     * Conversion from Java to Dart type following official specification
-     * https://flutter.dev/docs/development/platform-integration/platform-channels#platform-channel-data-types-support-and-codecs
-     */
-    private static <T> String javaToDartTypeConverted(Class<T> clazz) {
-        if (clazz == null) {
-            return "null";
-        } else if (clazz.isInstance(Boolean.class)) {
-            return "bool";
-        } else if (clazz.isInstance(Integer.class)) {
-            return "int";
-        } else if (clazz.isInstance(Long.class)) {
-            return "int";
-        } else if (clazz.isInstance(Double.class)) {
-            return "double";
-        } else if (clazz.isInstance(String.class)) {
-            return "String";
-        } else if (clazz.isInstance(byte[].class)) {
-            return "Uint8List";
-        } else if (clazz.isInstance(int[].class)) {
-            return "Int32List";
-        } else if (clazz.isInstance(long[].class)) {
-            return "Int64List";
-        } else if (clazz.isInstance(double[].class)) {
-            return "Float64List";
-        } else if (clazz.isInstance(ArrayList.class)) {
-            return "List";
-        } else if (clazz.isInstance(HashMap.class)) {
-            return "Map";
-        }
-        throw new IllegalArgumentException("Undefined dart type conversion for " + clazz.getName());
     }
 
     @Nullable

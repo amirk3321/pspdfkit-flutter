@@ -8,7 +8,7 @@ class FlutterPdfUiFragment : PdfUiFragment() {
 
     override fun onDocumentLoaded(document: PdfDocument) {
         super.onDocumentLoaded(document)
-      // Notify the Flutter PSPDFKit plugin that the document has been loaded.
+        // Notify the Flutter PSPDFKit plugin that the document has been loaded.
         EventDispatcher.getInstance().notifyDocumentLoaded(document)
     }
 }

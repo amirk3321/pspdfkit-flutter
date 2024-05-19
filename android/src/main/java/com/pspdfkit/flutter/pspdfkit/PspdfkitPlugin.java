@@ -101,18 +101,16 @@ public class PspdfkitPlugin
 
     @Nullable
     private ActivityPluginBinding activityPluginBinding;
-
-    public PspdfkitPlugin() {
-        this.permissionRequestResult = new AtomicReference<>();
-    }
-
     /**
      * Holds the disposables.
      */
     private Disposable disposable;
-
     @Nullable
-    private List<Map<String,Object>> measurementValueConfigurations;
+    private List<Map<String, Object>> measurementValueConfigurations;
+
+    public PspdfkitPlugin() {
+        this.permissionRequestResult = new AtomicReference<>();
+    }
 
     /**
      * This {@code FlutterPlugin} has been associated with a {@link FlutterEngine} instance.
@@ -181,7 +179,7 @@ public class PspdfkitPlugin
                 setLicenseKey(activity, licenseKey);
                 break;
             case "setLicenseKeys":
-                 String androidLicenseKey = call.argument("androidLicenseKey");
+                String androidLicenseKey = call.argument("androidLicenseKey");
                 setLicenseKey(activity, androidLicenseKey);
                 break;
             case "present":
@@ -197,8 +195,7 @@ public class PspdfkitPlugin
                         configurationMap
                 );
 
-                measurementValueConfigurations = (List<Map<String, Object>>)
-                        (configurationMap != null ? configurationMap.get("measurementValueConfigurations") : null);
+                measurementValueConfigurations = configurationMap != null ? (List<Map<String, Object>>) configurationMap.get("measurementValueConfigurations") : null;
 
                 activity.getApplication().registerActivityLifecycleCallbacks(this);
 
@@ -239,7 +236,7 @@ public class PspdfkitPlugin
                         activity,
                         configurationMapInstant
                 );
-                final  List<Map<String,Object>> measurementValueConfigurationsInstant = call.argument("measurementValueConfigurations");
+                final List<Map<String, Object>> measurementValueConfigurationsInstant = call.argument("measurementValueConfigurations");
 
                 FlutterInstantPdfActivity.setLoadedDocumentResult(result);
                 FlutterInstantPdfActivity.setMeasurementValueConfigurations(measurementValueConfigurationsInstant);
@@ -568,7 +565,7 @@ public class PspdfkitPlugin
                 }
                 break;
             }
-            case "addMeasurementValueConfiguration" : {
+            case "addMeasurementValueConfiguration": {
                 try {
                     Map<String, Object> configuration = call.argument("measurementValueConfiguration");
                     if (configuration == null) {
@@ -585,7 +582,7 @@ public class PspdfkitPlugin
                 }
                 break;
             }
-            case "getMeasurementValueConfiguration" :{
+            case "getMeasurementValueConfiguration": {
                 try {
                     if (getCurrentActivity().getPdfFragment() == null) {
                         result.error("PSPDFKitMeasurementException", "PdfFragment is null", null);
@@ -598,7 +595,7 @@ public class PspdfkitPlugin
                 }
                 break;
             }
-             case  "modifyMeasurementValueConfiguration" : {
+            case "modifyMeasurementValueConfiguration": {
                 try {
                     Map<String, Object> args = call.argument("payload");
                     if (args == null) {
@@ -615,7 +612,7 @@ public class PspdfkitPlugin
                 }
                 break;
             }
-            case "removeMeasurementValueConfiguration" : {
+            case "removeMeasurementValueConfiguration": {
                 try {
                     Map<String, Object> configuration = call.argument("payload");
                     if (configuration == null) {
@@ -849,7 +846,7 @@ public class PspdfkitPlugin
             if (pdfFragment == null) {
                 return;
             }
-            pdfFragment.addDocumentListener(new SimpleDocumentListener(){
+            pdfFragment.addDocumentListener(new SimpleDocumentListener() {
                 @Override
                 public void onDocumentLoaded(@NonNull PdfDocument document) {
                     super.onDocumentLoaded(document);

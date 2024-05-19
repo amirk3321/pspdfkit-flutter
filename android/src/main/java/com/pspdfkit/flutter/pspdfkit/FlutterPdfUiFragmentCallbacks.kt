@@ -9,7 +9,7 @@ import com.pspdfkit.listeners.SimpleDocumentListener
 import com.pspdfkit.ui.PdfFragment
 import io.flutter.plugin.common.MethodChannel
 
-class FlutterPdfUiFragmentCallbacks(val  methodChannel: MethodChannel,val measurementConfigurations: List<Map<String, Any>>?): FragmentManager.FragmentLifecycleCallbacks() {
+class FlutterPdfUiFragmentCallbacks(val methodChannel: MethodChannel, val measurementConfigurations: List<Map<String, Any>>?) : FragmentManager.FragmentLifecycleCallbacks() {
 
     var pdfFragment: PdfFragment? = null
 
@@ -27,7 +27,7 @@ class FlutterPdfUiFragmentCallbacks(val  methodChannel: MethodChannel,val measur
                 return
             }
             pdfFragment = f as PdfFragment
-            pdfFragment?.addDocumentListener( object : SimpleDocumentListener() {
+            pdfFragment?.addDocumentListener(object : SimpleDocumentListener() {
                 override fun onDocumentLoaded(document: PdfDocument) {
                     measurementConfigurations?.forEach {
                         MeasurementHelper.addMeasurementConfiguration(pdfFragment!!, it)

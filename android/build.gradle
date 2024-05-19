@@ -15,7 +15,9 @@ buildscript {
     }
 
     dependencies {
-        classpath "com.android.tools.build:gradle:$androidGradlePluginVersion"
+        classpath "com.android.tools.build:gradle:7.4.1"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.22"
+
     }
 }
 
@@ -39,7 +41,7 @@ android {
     namespace "com.pspdfkit.flutter.pspdfkit"
 
     compileSdk androidCompileSdkVersion
-    
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17

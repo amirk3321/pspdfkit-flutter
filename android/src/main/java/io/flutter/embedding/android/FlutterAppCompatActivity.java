@@ -34,11 +34,16 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import io.flutter.Log;
 import io.flutter.embedding.android.FlutterActivityLaunchConfigs.BackgroundMode;
 import io.flutter.embedding.engine.FlutterEngine;
@@ -46,8 +51,6 @@ import io.flutter.embedding.engine.FlutterShellArgs;
 import io.flutter.embedding.engine.plugins.util.GeneratedPluginRegister;
 import io.flutter.plugin.platform.PlatformPlugin;
 import io.flutter.util.ViewUtils;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A Flutter {@code Activity} that is based upon {@link AppCompatActivity}.
@@ -62,13 +65,13 @@ import java.util.List;
 // FlutterActivity, too.
 public class FlutterAppCompatActivity extends AppCompatActivity
         implements FlutterEngineProvider, FlutterEngineConfigurator {
+    // TODO(mattcarroll): replace ID with R.id when build system supports R.java
+    public static final int FRAGMENT_CONTAINER_ID = View.generateViewId(); // random number
     private static final String TAG = "FlutterAppCompatActivity";
-
     // FlutterFragment management.
     private static final String TAG_FLUTTER_FRAGMENT = "flutter_fragment";
-    // TODO(mattcarroll): replace ID with R.id when build system supports R.java
-    public static final int FRAGMENT_CONTAINER_ID =
-            ViewUtils.generateViewId(609893468); // random number
+    @Nullable
+    private FlutterFragment flutterFragment;
 
     /**
      * Creates an {@link Intent} that launches a {@code FlutterFragmentActivity}, which executes a
@@ -91,96 +94,6 @@ public class FlutterAppCompatActivity extends AppCompatActivity
     }
 
     /**
-     * Builder to create an {@code Intent} that launches a {@code FlutterFragmentActivity} with a new
-     * {@link io.flutter.embedding.engine.FlutterEngine} and the desired configuration.
-     */
-    public static class NewEngineIntentBuilder {
-        private final Class<? extends FlutterFragmentActivity> activityClass;
-        private String initialRoute = DEFAULT_INITIAL_ROUTE;
-        private String backgroundMode = DEFAULT_BACKGROUND_MODE;
-        @Nullable private List<String> dartEntrypointArgs;
-
-        /**
-         * Constructor that allows this {@code NewEngineIntentBuilder} to be used by subclasses of
-         * {@code FlutterFragmentActivity}.
-         *
-         * <p>Subclasses of {@code FlutterFragmentActivity} should provide their own static version of
-         * {@link #withNewEngine()}, which returns an instance of {@code NewEngineIntentBuilder}
-         * constructed with a {@code Class} reference to the {@code FlutterFragmentActivity} subclass,
-         * e.g.:
-         *
-         * <p>{@code return new NewEngineIntentBuilder(MyFlutterActivity.class); }
-         */
-        public NewEngineIntentBuilder(@NonNull Class<? extends FlutterFragmentActivity> activityClass) {
-            this.activityClass = activityClass;
-        }
-
-        /**
-         * The initial route that a Flutter app will render in this {@code FlutterFragmentActivity},
-         * defaults to "/".
-         */
-        @NonNull
-        public NewEngineIntentBuilder initialRoute(@NonNull String initialRoute) {
-            this.initialRoute = initialRoute;
-            return this;
-        }
-
-        /**
-         * The mode of {@code FlutterFragmentActivity}'s background, either {@link
-         * BackgroundMode#opaque} or {@link BackgroundMode#transparent}.
-         *
-         * <p>The default background mode is {@link BackgroundMode#opaque}.
-         *
-         * <p>Choosing a background mode of {@link BackgroundMode#transparent} will configure the inner
-         * {@link FlutterView} of this {@code FlutterFragmentActivity} to be configured with a {@link
-         * FlutterTextureView} to support transparency. This choice has a non-trivial performance
-         * impact. A transparent background should only be used if it is necessary for the app design
-         * being implemented.
-         *
-         * <p>A {@code FlutterFragmentActivity} that is configured with a background mode of {@link
-         * BackgroundMode#transparent} must have a theme applied to it that includes the following
-         * property: {@code <item name="android:windowIsTranslucent">true</item>}.
-         */
-        @NonNull
-        public NewEngineIntentBuilder backgroundMode(@NonNull BackgroundMode backgroundMode) {
-            this.backgroundMode = backgroundMode.name();
-            return this;
-        }
-
-        /**
-         * The Dart entrypoint arguments will be passed as a list of string to Dart's entrypoint
-         * function.
-         *
-         * <p>A value of null means do not pass any arguments to Dart's entrypoint function.
-         *
-         * @param dartEntrypointArgs The Dart entrypoint arguments.
-         * @return The engine intent builder.
-         */
-        @NonNull
-        public NewEngineIntentBuilder dartEntrypointArgs(@Nullable List<String> dartEntrypointArgs) {
-            this.dartEntrypointArgs = dartEntrypointArgs;
-            return this;
-        }
-
-        /**
-         * Creates and returns an {@link Intent} that will launch a {@code FlutterFragmentActivity} with
-         * the desired configuration.
-         */
-        @NonNull
-        public Intent build(@NonNull Context context) {
-            Intent intent =
-                    new Intent(context, activityClass)
-                            .putExtra(EXTRA_INITIAL_ROUTE, initialRoute)
-                            .putExtra(EXTRA_BACKGROUND_MODE, backgroundMode)
-                            .putExtra(EXTRA_DESTROY_ENGINE_WITH_ACTIVITY, true);
-            if (dartEntrypointArgs != null) {
-                intent.putExtra(EXTRA_DART_ENTRYPOINT_ARGS, new ArrayList(dartEntrypointArgs));
-            }
-            return intent;
-        }
-    }
-
-    /**
      * Creates a {@link CachedEngineIntentBuilder}, which can be used to configure an {@link Intent}
      * to launch a {@code FlutterFragmentActivity} that internally uses an existing {@link
      * FlutterEngine} that is cached in {@link io.flutter.embedding.engine.FlutterEngineCache}.
@@ -188,80 +101,6 @@ public class FlutterAppCompatActivity extends AppCompatActivity
     @NonNull
     public static CachedEngineIntentBuilder withCachedEngine(@NonNull String cachedEngineId) {
         return new CachedEngineIntentBuilder(FlutterFragmentActivity.class, cachedEngineId);
-    }
-
-    /**
-     * Builder to create an {@code Intent} that launches a {@code FlutterFragmentActivity} with an
-     * existing {@link io.flutter.embedding.engine.FlutterEngine} that is cached in {@link
-     * io.flutter.embedding.engine.FlutterEngineCache}.
-     */
-    public static class CachedEngineIntentBuilder {
-        private final Class<? extends FlutterFragmentActivity> activityClass;
-        private final String cachedEngineId;
-        private boolean destroyEngineWithActivity = false;
-        private String backgroundMode = DEFAULT_BACKGROUND_MODE;
-
-        /**
-         * Constructor that allows this {@code CachedEngineIntentBuilder} to be used by subclasses of
-         * {@code FlutterFragmentActivity}.
-         *
-         * <p>Subclasses of {@code FlutterFragmentActivity} should provide their own static version of
-         * {@link #withCachedEngine(String)}, which returns an instance of {@code
-         * CachedEngineIntentBuilder} constructed with a {@code Class} reference to the {@code
-         * FlutterFragmentActivity} subclass, e.g.:
-         *
-         * <p>{@code return new CachedEngineIntentBuilder(MyFlutterActivity.class, engineId); }
-         */
-        public CachedEngineIntentBuilder(
-                @NonNull Class<? extends FlutterFragmentActivity> activityClass, @NonNull String engineId) {
-            this.activityClass = activityClass;
-            this.cachedEngineId = engineId;
-        }
-
-        /**
-         * Returns true if the cached {@link io.flutter.embedding.engine.FlutterEngine} should be
-         * destroyed and removed from the cache when this {@code FlutterFragmentActivity} is destroyed.
-         *
-         * <p>The default value is {@code false}.
-         */
-        public CachedEngineIntentBuilder destroyEngineWithActivity(boolean destroyEngineWithActivity) {
-            this.destroyEngineWithActivity = destroyEngineWithActivity;
-            return this;
-        }
-
-        /**
-         * The mode of {@code FlutterFragmentActivity}'s background, either {@link
-         * BackgroundMode#opaque} or {@link BackgroundMode#transparent}.
-         *
-         * <p>The default background mode is {@link BackgroundMode#opaque}.
-         *
-         * <p>Choosing a background mode of {@link BackgroundMode#transparent} will configure the inner
-         * {@link FlutterView} of this {@code FlutterFragmentActivity} to be configured with a {@link
-         * FlutterTextureView} to support transparency. This choice has a non-trivial performance
-         * impact. A transparent background should only be used if it is necessary for the app design
-         * being implemented.
-         *
-         * <p>A {@code FlutterFragmentActivity} that is configured with a background mode of {@link
-         * BackgroundMode#transparent} must have a theme applied to it that includes the following
-         * property: {@code <item name="android:windowIsTranslucent">true</item>}.
-         */
-        @NonNull
-        public CachedEngineIntentBuilder backgroundMode(@NonNull BackgroundMode backgroundMode) {
-            this.backgroundMode = backgroundMode.name();
-            return this;
-        }
-
-        /**
-         * Creates and returns an {@link Intent} that will launch a {@code FlutterFragmentActivity} with
-         * the desired configuration.
-         */
-        @NonNull
-        public Intent build(@NonNull Context context) {
-            return new Intent(context, activityClass)
-                    .putExtra(EXTRA_CACHED_ENGINE_ID, cachedEngineId)
-                    .putExtra(EXTRA_DESTROY_ENGINE_WITH_ACTIVITY, destroyEngineWithActivity)
-                    .putExtra(EXTRA_BACKGROUND_MODE, backgroundMode);
-        }
     }
 
     /**
@@ -276,101 +115,6 @@ public class FlutterAppCompatActivity extends AppCompatActivity
     public static NewEngineInGroupIntentBuilder withNewEngineInGroup(@NonNull String engineGroupId) {
         return new NewEngineInGroupIntentBuilder(FlutterFragmentActivity.class, engineGroupId);
     }
-
-    /**
-     * Builder to create an {@code Intent} that launches a {@code FlutterFragmentActivity} with a new
-     * {@link FlutterEngine} by FlutterEngineGroup#createAndRunEngine.
-     */
-    public static class NewEngineInGroupIntentBuilder {
-        private final Class<? extends FlutterFragmentActivity> activityClass;
-        private final String cachedEngineGroupId;
-        private String dartEntrypoint = DEFAULT_DART_ENTRYPOINT;
-        private String initialRoute = DEFAULT_INITIAL_ROUTE;
-        private String backgroundMode = DEFAULT_BACKGROUND_MODE;
-
-        /**
-         * Constructor that allows this {@code NewEngineInGroupIntentBuilder} to be used by subclasses
-         * of {@code FlutterActivity}.
-         *
-         * <p>Subclasses of {@code FlutterFragmentActivity} should provide their own static version of
-         * {@link #withNewEngineInGroup}, which returns an instance of {@code
-         * NewEngineInGroupIntentBuilder} constructed with a {@code Class} reference to the {@code
-         * FlutterFragmentActivity} subclass, e.g.:
-         *
-         * <p>{@code return new NewEngineInGroupIntentBuilder(FlutterFragmentActivity.class,
-         * cacheedEngineGroupId); }
-         *
-         * @param activityClass A subclass of {@code FlutterFragmentActivity}.
-         * @param engineGroupId The engine group id.
-         */
-        public NewEngineInGroupIntentBuilder(
-                @NonNull Class<? extends FlutterFragmentActivity> activityClass,
-                @NonNull String engineGroupId) {
-            this.activityClass = activityClass;
-            this.cachedEngineGroupId = engineGroupId;
-        }
-
-        /**
-         * The Dart entrypoint that will be executed as soon as the Dart snapshot is loaded, default to
-         * "main".
-         *
-         * @param dartEntrypoint The dart entrypoint's name
-         * @return The engine group intent builder
-         */
-        @NonNull
-        public NewEngineInGroupIntentBuilder dartEntrypoint(@NonNull String dartEntrypoint) {
-            this.dartEntrypoint = dartEntrypoint;
-            return this;
-        }
-
-        /**
-         * The initial route that a Flutter app will render in this {@code FlutterFragmentActivity},
-         * defaults to "/".
-         */
-        @NonNull
-        public NewEngineInGroupIntentBuilder initialRoute(@NonNull String initialRoute) {
-            this.initialRoute = initialRoute;
-            return this;
-        }
-
-        /**
-         * The mode of {@code FlutterFragmentActivity}'s background, either {@link
-         * BackgroundMode#opaque} or {@link BackgroundMode#transparent}.
-         *
-         * <p>The default background mode is {@link BackgroundMode#opaque}.
-         *
-         * <p>Choosing a background mode of {@link BackgroundMode#transparent} will configure the inner
-         * {@link FlutterView} of this {@code FlutterFragmentActivity} to be configured with a {@link
-         * FlutterTextureView} to support transparency. This choice has a non-trivial performance
-         * impact. A transparent background should only be used if it is necessary for the app design
-         * being implemented.
-         *
-         * <p>A {@code FlutterFragmentActivity} that is configured with a background mode of {@link
-         * BackgroundMode#transparent} must have a theme applied to it that includes the following
-         * property: {@code <item name="android:windowIsTranslucent">true</item>}.
-         */
-        @NonNull
-        public NewEngineInGroupIntentBuilder backgroundMode(@NonNull BackgroundMode backgroundMode) {
-            this.backgroundMode = backgroundMode.name();
-            return this;
-        }
-
-        /**
-         * Creates and returns an {@link Intent} that will launch a {@code FlutterFragmentActivity} with
-         * the desired configuration.
-         */
-        @NonNull
-        public Intent build(@NonNull Context context) {
-            return new Intent(context, activityClass)
-                    .putExtra(EXTRA_DART_ENTRYPOINT, dartEntrypoint)
-                    .putExtra(EXTRA_INITIAL_ROUTE, initialRoute)
-                    .putExtra(EXTRA_CACHED_ENGINE_GROUP_ID, cachedEngineGroupId)
-                    .putExtra(EXTRA_BACKGROUND_MODE, backgroundMode)
-                    .putExtra(EXTRA_DESTROY_ENGINE_WITH_ACTIVITY, true);
-        }
-    }
-
-    @Nullable private FlutterFragment flutterFragment;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -407,7 +151,7 @@ public class FlutterAppCompatActivity extends AppCompatActivity
      *       "io.flutter.embedding.android.NormalTheme" and set the resource to your normal theme,
      *       e.g., {@code android:resource="@style/MyNormalTheme}.
      * </ol>
-     *
+     * <p>
      * With the above settings, your launch theme will be used when loading the app, and then the
      * theme will be switched to your normal theme once the app has initialized.
      *
@@ -710,7 +454,9 @@ public class FlutterAppCompatActivity extends AppCompatActivity
         }
     }
 
-    /** Hook for subclasses to easily provide a custom {@code FlutterEngine}. */
+    /**
+     * Hook for subclasses to easily provide a custom {@code FlutterEngine}.
+     */
     @Nullable
     @Override
     public FlutterEngine provideFlutterEngine(@NonNull Context context) {
@@ -774,15 +520,15 @@ public class FlutterAppCompatActivity extends AppCompatActivity
         // conflating.
         if (isDebuggable() && Intent.ACTION_RUN.equals(getIntent().getAction())) {
             String appBundlePath = getIntent().getDataString();
-            if (appBundlePath != null) {
-                return appBundlePath;
-            }
+            return appBundlePath;
         }
 
         return null;
     }
 
-    /** Retrieves the meta data specified in the AndroidManifest.xml. */
+    /**
+     * Retrieves the meta data specified in the AndroidManifest.xml.
+     */
     @Nullable
     protected Bundle getMetaData() throws PackageManager.NameNotFoundException {
         ActivityInfo activityInfo =
@@ -861,7 +607,7 @@ public class FlutterAppCompatActivity extends AppCompatActivity
      *       FlutterActivityLaunchConfigs#INITIAL_ROUTE_META_DATA_KEY} for this {@code Activity} in
      *       the Android manifest.
      * </ol>
-     *
+     * <p>
      * If both preferences are set, the {@code Intent} preference takes priority.
      *
      * <p>The reason that a {@code <meta-data>} preference is supported is because this {@code
@@ -939,9 +685,269 @@ public class FlutterAppCompatActivity extends AppCompatActivity
         return (getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
     }
 
-    /** Returns a {@link FrameLayout} that is used as the content view of this activity. */
+    /**
+     * Returns a {@link FrameLayout} that is used as the content view of this activity.
+     */
     @NonNull
     protected FrameLayout provideRootLayout(Context context) {
         return new FrameLayout(context);
+    }
+
+    /**
+     * Builder to create an {@code Intent} that launches a {@code FlutterFragmentActivity} with a new
+     * {@link io.flutter.embedding.engine.FlutterEngine} and the desired configuration.
+     */
+    public static class NewEngineIntentBuilder {
+        private final Class<? extends FlutterFragmentActivity> activityClass;
+        private String initialRoute = DEFAULT_INITIAL_ROUTE;
+        private String backgroundMode = DEFAULT_BACKGROUND_MODE;
+        @Nullable
+        private List<String> dartEntrypointArgs;
+
+        /**
+         * Constructor that allows this {@code NewEngineIntentBuilder} to be used by subclasses of
+         * {@code FlutterFragmentActivity}.
+         *
+         * <p>Subclasses of {@code FlutterFragmentActivity} should provide their own static version of
+         * {@link #withNewEngine()}, which returns an instance of {@code NewEngineIntentBuilder}
+         * constructed with a {@code Class} reference to the {@code FlutterFragmentActivity} subclass,
+         * e.g.:
+         *
+         * <p>{@code return new NewEngineIntentBuilder(MyFlutterActivity.class); }
+         */
+        public NewEngineIntentBuilder(@NonNull Class<? extends FlutterFragmentActivity> activityClass) {
+            this.activityClass = activityClass;
+        }
+
+        /**
+         * The initial route that a Flutter app will render in this {@code FlutterFragmentActivity},
+         * defaults to "/".
+         */
+        @NonNull
+        public NewEngineIntentBuilder initialRoute(@NonNull String initialRoute) {
+            this.initialRoute = initialRoute;
+            return this;
+        }
+
+        /**
+         * The mode of {@code FlutterFragmentActivity}'s background, either {@link
+         * BackgroundMode#opaque} or {@link BackgroundMode#transparent}.
+         *
+         * <p>The default background mode is {@link BackgroundMode#opaque}.
+         *
+         * <p>Choosing a background mode of {@link BackgroundMode#transparent} will configure the inner
+         * {@link FlutterView} of this {@code FlutterFragmentActivity} to be configured with a {@link
+         * FlutterTextureView} to support transparency. This choice has a non-trivial performance
+         * impact. A transparent background should only be used if it is necessary for the app design
+         * being implemented.
+         *
+         * <p>A {@code FlutterFragmentActivity} that is configured with a background mode of {@link
+         * BackgroundMode#transparent} must have a theme applied to it that includes the following
+         * property: {@code <item name="android:windowIsTranslucent">true</item>}.
+         */
+        @NonNull
+        public NewEngineIntentBuilder backgroundMode(@NonNull BackgroundMode backgroundMode) {
+            this.backgroundMode = backgroundMode.name();
+            return this;
+        }
+
+        /**
+         * The Dart entrypoint arguments will be passed as a list of string to Dart's entrypoint
+         * function.
+         *
+         * <p>A value of null means do not pass any arguments to Dart's entrypoint function.
+         *
+         * @param dartEntrypointArgs The Dart entrypoint arguments.
+         * @return The engine intent builder.
+         */
+        @NonNull
+        public NewEngineIntentBuilder dartEntrypointArgs(@Nullable List<String> dartEntrypointArgs) {
+            this.dartEntrypointArgs = dartEntrypointArgs;
+            return this;
+        }
+
+        /**
+         * Creates and returns an {@link Intent} that will launch a {@code FlutterFragmentActivity} with
+         * the desired configuration.
+         */
+        @NonNull
+        public Intent build(@NonNull Context context) {
+            Intent intent =
+                    new Intent(context, activityClass)
+                            .putExtra(EXTRA_INITIAL_ROUTE, initialRoute)
+                            .putExtra(EXTRA_BACKGROUND_MODE, backgroundMode)
+                            .putExtra(EXTRA_DESTROY_ENGINE_WITH_ACTIVITY, true);
+            if (dartEntrypointArgs != null) {
+                intent.putExtra(EXTRA_DART_ENTRYPOINT_ARGS, new ArrayList(dartEntrypointArgs));
+            }
+            return intent;
+        }
+    }
+
+    /**
+     * Builder to create an {@code Intent} that launches a {@code FlutterFragmentActivity} with an
+     * existing {@link io.flutter.embedding.engine.FlutterEngine} that is cached in {@link
+     * io.flutter.embedding.engine.FlutterEngineCache}.
+     */
+    public static class CachedEngineIntentBuilder {
+        private final Class<? extends FlutterFragmentActivity> activityClass;
+        private final String cachedEngineId;
+        private boolean destroyEngineWithActivity = false;
+        private String backgroundMode = DEFAULT_BACKGROUND_MODE;
+
+        /**
+         * Constructor that allows this {@code CachedEngineIntentBuilder} to be used by subclasses of
+         * {@code FlutterFragmentActivity}.
+         *
+         * <p>Subclasses of {@code FlutterFragmentActivity} should provide their own static version of
+         * {@link #withCachedEngine(String)}, which returns an instance of {@code
+         * CachedEngineIntentBuilder} constructed with a {@code Class} reference to the {@code
+         * FlutterFragmentActivity} subclass, e.g.:
+         *
+         * <p>{@code return new CachedEngineIntentBuilder(MyFlutterActivity.class, engineId); }
+         */
+        public CachedEngineIntentBuilder(
+                @NonNull Class<? extends FlutterFragmentActivity> activityClass, @NonNull String engineId) {
+            this.activityClass = activityClass;
+            this.cachedEngineId = engineId;
+        }
+
+        /**
+         * Returns true if the cached {@link io.flutter.embedding.engine.FlutterEngine} should be
+         * destroyed and removed from the cache when this {@code FlutterFragmentActivity} is destroyed.
+         *
+         * <p>The default value is {@code false}.
+         */
+        public CachedEngineIntentBuilder destroyEngineWithActivity(boolean destroyEngineWithActivity) {
+            this.destroyEngineWithActivity = destroyEngineWithActivity;
+            return this;
+        }
+
+        /**
+         * The mode of {@code FlutterFragmentActivity}'s background, either {@link
+         * BackgroundMode#opaque} or {@link BackgroundMode#transparent}.
+         *
+         * <p>The default background mode is {@link BackgroundMode#opaque}.
+         *
+         * <p>Choosing a background mode of {@link BackgroundMode#transparent} will configure the inner
+         * {@link FlutterView} of this {@code FlutterFragmentActivity} to be configured with a {@link
+         * FlutterTextureView} to support transparency. This choice has a non-trivial performance
+         * impact. A transparent background should only be used if it is necessary for the app design
+         * being implemented.
+         *
+         * <p>A {@code FlutterFragmentActivity} that is configured with a background mode of {@link
+         * BackgroundMode#transparent} must have a theme applied to it that includes the following
+         * property: {@code <item name="android:windowIsTranslucent">true</item>}.
+         */
+        @NonNull
+        public CachedEngineIntentBuilder backgroundMode(@NonNull BackgroundMode backgroundMode) {
+            this.backgroundMode = backgroundMode.name();
+            return this;
+        }
+
+        /**
+         * Creates and returns an {@link Intent} that will launch a {@code FlutterFragmentActivity} with
+         * the desired configuration.
+         */
+        @NonNull
+        public Intent build(@NonNull Context context) {
+            return new Intent(context, activityClass)
+                    .putExtra(EXTRA_CACHED_ENGINE_ID, cachedEngineId)
+                    .putExtra(EXTRA_DESTROY_ENGINE_WITH_ACTIVITY, destroyEngineWithActivity)
+                    .putExtra(EXTRA_BACKGROUND_MODE, backgroundMode);
+        }
+    }
+
+    /**
+     * Builder to create an {@code Intent} that launches a {@code FlutterFragmentActivity} with a new
+     * {@link FlutterEngine} by FlutterEngineGroup#createAndRunEngine.
+     */
+    public static class NewEngineInGroupIntentBuilder {
+        private final Class<? extends FlutterFragmentActivity> activityClass;
+        private final String cachedEngineGroupId;
+        private String dartEntrypoint = DEFAULT_DART_ENTRYPOINT;
+        private String initialRoute = DEFAULT_INITIAL_ROUTE;
+        private String backgroundMode = DEFAULT_BACKGROUND_MODE;
+
+        /**
+         * Constructor that allows this {@code NewEngineInGroupIntentBuilder} to be used by subclasses
+         * of {@code FlutterActivity}.
+         *
+         * <p>Subclasses of {@code FlutterFragmentActivity} should provide their own static version of
+         * {@link #withNewEngineInGroup}, which returns an instance of {@code
+         * NewEngineInGroupIntentBuilder} constructed with a {@code Class} reference to the {@code
+         * FlutterFragmentActivity} subclass, e.g.:
+         *
+         * <p>{@code return new NewEngineInGroupIntentBuilder(FlutterFragmentActivity.class,
+         * cacheedEngineGroupId); }
+         *
+         * @param activityClass A subclass of {@code FlutterFragmentActivity}.
+         * @param engineGroupId The engine group id.
+         */
+        public NewEngineInGroupIntentBuilder(
+                @NonNull Class<? extends FlutterFragmentActivity> activityClass,
+                @NonNull String engineGroupId) {
+            this.activityClass = activityClass;
+            this.cachedEngineGroupId = engineGroupId;
+        }
+
+        /**
+         * The Dart entrypoint that will be executed as soon as the Dart snapshot is loaded, default to
+         * "main".
+         *
+         * @param dartEntrypoint The dart entrypoint's name
+         * @return The engine group intent builder
+         */
+        @NonNull
+        public NewEngineInGroupIntentBuilder dartEntrypoint(@NonNull String dartEntrypoint) {
+            this.dartEntrypoint = dartEntrypoint;
+            return this;
+        }
+
+        /**
+         * The initial route that a Flutter app will render in this {@code FlutterFragmentActivity},
+         * defaults to "/".
+         */
+        @NonNull
+        public NewEngineInGroupIntentBuilder initialRoute(@NonNull String initialRoute) {
+            this.initialRoute = initialRoute;
+            return this;
+        }
+
+        /**
+         * The mode of {@code FlutterFragmentActivity}'s background, either {@link
+         * BackgroundMode#opaque} or {@link BackgroundMode#transparent}.
+         *
+         * <p>The default background mode is {@link BackgroundMode#opaque}.
+         *
+         * <p>Choosing a background mode of {@link BackgroundMode#transparent} will configure the inner
+         * {@link FlutterView} of this {@code FlutterFragmentActivity} to be configured with a {@link
+         * FlutterTextureView} to support transparency. This choice has a non-trivial performance
+         * impact. A transparent background should only be used if it is necessary for the app design
+         * being implemented.
+         *
+         * <p>A {@code FlutterFragmentActivity} that is configured with a background mode of {@link
+         * BackgroundMode#transparent} must have a theme applied to it that includes the following
+         * property: {@code <item name="android:windowIsTranslucent">true</item>}.
+         */
+        @NonNull
+        public NewEngineInGroupIntentBuilder backgroundMode(@NonNull BackgroundMode backgroundMode) {
+            this.backgroundMode = backgroundMode.name();
+            return this;
+        }
+
+        /**
+         * Creates and returns an {@link Intent} that will launch a {@code FlutterFragmentActivity} with
+         * the desired configuration.
+         */
+        @NonNull
+        public Intent build(@NonNull Context context) {
+            return new Intent(context, activityClass)
+                    .putExtra(EXTRA_DART_ENTRYPOINT, dartEntrypoint)
+                    .putExtra(EXTRA_INITIAL_ROUTE, initialRoute)
+                    .putExtra(EXTRA_CACHED_ENGINE_GROUP_ID, cachedEngineGroupId)
+                    .putExtra(EXTRA_BACKGROUND_MODE, backgroundMode)
+                    .putExtra(EXTRA_DESTROY_ENGINE_WITH_ACTIVITY, true);
+        }
     }
 }

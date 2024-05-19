@@ -27,7 +27,7 @@ import com.pspdfkit.ui.toolbar.grouping.MenuItemGroupingRule
  * Keeps track of the currently active mode and handles updating the toolbar states.
  */
 internal class FlutterViewModeController(private val itemGroupingRule: MenuItemGroupingRule?) :
-    OnContextualToolbarLifecycleListener {
+        OnContextualToolbarLifecycleListener {
 
     override fun onPrepareContextualToolbar(contextualToolbar: ContextualToolbar<*>) {
         if (contextualToolbar is AnnotationCreationToolbar) {

@@ -6,16 +6,16 @@ import com.pspdfkit.document.PdfVersion
 import java.util.EnumSet
 
 object ProcessorHelper {
-    fun  extractSaveOptions( options: Map<String, Any>): DocumentSaveOptions {
+    fun extractSaveOptions(options: Map<String, Any>): DocumentSaveOptions {
         val password: String? = options["password"] as String?
-        val permissionsList = options["permissions"]as List<String>??: emptyList()
+        val permissionsList = options["permissions"] as List<String>? ?: emptyList()
         val incremental = options["incremental"] as Boolean? ?: false
         val pdfVersion = options["pdfVersion"] as String?
         val saveOptions = DocumentSaveOptions(
-            password,
-            extractPermissions(permissionsList ),
-            incremental,
-            extractPdfVersion(pdfVersion)
+                password,
+                extractPermissions(permissionsList),
+                incremental,
+                extractPdfVersion(pdfVersion)
         )
         return saveOptions
     }

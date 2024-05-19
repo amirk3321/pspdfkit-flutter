@@ -16,10 +16,10 @@ class MeasurementHelper {
          * @param configurations The measurement configuration to add.
          */
         @JvmStatic
-        fun addMeasurementConfiguration(pdfFragment: PdfFragment, configurations : Map<String, Any>) {
+        fun addMeasurementConfiguration(pdfFragment: PdfFragment, configurations: Map<String, Any>) {
             val measurementValueConfiguration = convertMeasurementConfiguration(configurations)
             val addToUndo = (configurations["addToUndo"] as Boolean?) ?: false
-            pdfFragment.measurementValueConfigurationEditor?.add(measurementValueConfiguration,addToUndo)
+            pdfFragment.measurementValueConfigurationEditor?.add(measurementValueConfiguration, addToUndo)
         }
 
         /**
@@ -29,11 +29,11 @@ class MeasurementHelper {
          * @param configurations The measurement configuration to remove.
          */
         @JvmStatic
-        fun removeMeasurementConfiguration(pdfFragment: PdfFragment, configurations :Map<String, Any>) {
-                val measurementValueConfiguration = convertMeasurementConfiguration(configurations["configuration"] as Map<String, Any>)
-                val deleteAssociatedAnnotations = configurations["deleteAssociatedAnnotations"] as Boolean
-                val addToUndoStack = configurations["addToUndo"] as Boolean
-                pdfFragment.measurementValueConfigurationEditor?.remove(measurementValueConfiguration,deleteAssociatedAnnotations,addToUndoStack)
+        fun removeMeasurementConfiguration(pdfFragment: PdfFragment, configurations: Map<String, Any>) {
+            val measurementValueConfiguration = convertMeasurementConfiguration(configurations["configuration"] as Map<String, Any>)
+            val deleteAssociatedAnnotations = configurations["deleteAssociatedAnnotations"] as Boolean
+            val addToUndoStack = configurations["addToUndo"] as Boolean
+            pdfFragment.measurementValueConfigurationEditor?.remove(measurementValueConfiguration, deleteAssociatedAnnotations, addToUndoStack)
         }
 
         /**
@@ -43,8 +43,9 @@ class MeasurementHelper {
          * @return The measurement configurations for the document.
          */
         @JvmStatic
-        fun getMeasurementConfigurations(pdfFragment: PdfFragment) : List<Map<String,Any?>> {
-            return pdfFragment.measurementValueConfigurationEditor?.configurations?.map { reverseMeasurementConfiguration(it) } ?: emptyList()
+        fun getMeasurementConfigurations(pdfFragment: PdfFragment): List<Map<String, Any?>> {
+            return pdfFragment.measurementValueConfigurationEditor?.configurations?.map { reverseMeasurementConfiguration(it) }
+                    ?: emptyList()
         }
 
         /**
@@ -54,13 +55,13 @@ class MeasurementHelper {
          * @param args The arguments for the modification.
          */
         @JvmStatic
-        fun modifyMeasurementConfiguration(pdfFragment: PdfFragment, args : Map<String, Any>) {
+        fun modifyMeasurementConfiguration(pdfFragment: PdfFragment, args: Map<String, Any>) {
             val newMeasurementValueConfiguration = convertMeasurementConfiguration(args["newConfiguration"] as Map<String, Any>?)
             val oldMeasurementValueConfiguration = convertMeasurementConfiguration(args["oldConfiguration"] as Map<String, Any>?)
             val modifyAssociatedAnnotations = args["modifyAssociatedAnnotations"] as Boolean
             val addToUndoStack = args["addToUndo"] as Boolean
-            pdfFragment.measurementValueConfigurationEditor?.modify(oldMeasurementValueConfiguration,newMeasurementValueConfiguration,
-                modifyAssociatedAnnotations,addToUndoStack)
+            pdfFragment.measurementValueConfigurationEditor?.modify(oldMeasurementValueConfiguration, newMeasurementValueConfiguration,
+                    modifyAssociatedAnnotations, addToUndoStack)
         }
 
         /**
@@ -72,9 +73,9 @@ class MeasurementHelper {
         @JvmStatic
         fun convertMeasurementConfiguration(measurementConfigurations: Map<String, Any>?): MeasurementValueConfiguration {
             val scale =
-                convertScale(measurementConfigurations?.get("scale") as Map<String, Any>?)
+                    convertScale(measurementConfigurations?.get("scale") as Map<String, Any>?)
             val precision =
-                convertPrecision(measurementConfigurations?.get("precision") as String?)
+                    convertPrecision(measurementConfigurations?.get("precision") as String?)
             val name = (measurementConfigurations?.get("name") as String?) ?: "Unknown"
             if (scale == null) {
                 throw IllegalArgumentException("Invalid scale")
@@ -84,15 +85,16 @@ class MeasurementHelper {
             }
             return MeasurementValueConfiguration(name, scale, precision)
         }
-       private  fun reverseMeasurementConfiguration(measurementValueConfiguration: MeasurementValueConfiguration): Map<String, Any?> {
+
+        private fun reverseMeasurementConfiguration(measurementValueConfiguration: MeasurementValueConfiguration): Map<String, Any?> {
             return mapOf(
-                "name" to measurementValueConfiguration.name,
-                "scale" to reverseScale(measurementValueConfiguration.scale),
-                "precision" to reversePrecision(measurementValueConfiguration.precision)
+                    "name" to measurementValueConfiguration.name,
+                    "scale" to reverseScale(measurementValueConfiguration.scale),
+                    "precision" to reversePrecision(measurementValueConfiguration.precision)
             )
         }
 
-      private  fun convertScale(scale: Map<String, Any>?): Scale? {
+        private fun convertScale(scale: Map<String, Any>?): Scale? {
             if (scale == null) {
                 return null
             }
@@ -132,10 +134,10 @@ class MeasurementHelper {
 
         private fun reverseScale(scale: Scale): Map<String, Any> {
             return mapOf(
-                "valueFrom" to scale.valueFrom.toDouble(),
-                "valueTo" to scale.valueTo.toDouble(),
-                "unitFrom" to reverseUnitFrom(scale.unitFrom),
-                "unitTo" to reverseUnitTo(scale.unitTo)
+                    "valueFrom" to scale.valueFrom.toDouble(),
+                    "valueTo" to scale.valueTo.toDouble(),
+                    "unitFrom" to reverseUnitFrom(scale.unitFrom),
+                    "unitTo" to reverseUnitTo(scale.unitTo)
             )
         }
 
